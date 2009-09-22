@@ -1,9 +1,11 @@
 #!/usr/bin/ruby
 
-require 'base'
 gem 'twitter4r'
 require 'twitter'
 require 'twitter/console' # twitter.yml 使うため
+
+$:.push(File.expand_path(File.dirname(__FILE__)))
+require 'base'
 
 #ActiveRecord::Base.logger=Logger.new(STDOUT)
 

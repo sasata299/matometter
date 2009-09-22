@@ -1,5 +1,6 @@
 #!/usr/bin/ruby
 
+$:.push(File.expand_path(File.dirname(__FILE__)))
 require 'base'
 
 ActiveRecord::Base.logger=Logger.new(STDOUT)
