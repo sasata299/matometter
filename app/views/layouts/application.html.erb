@@ -1,0 +1,33 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+  "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Script-Type" content="text/javascript" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+    <meta name="keywords" content="*****" />
+    <meta name="description" content="*****" />
+
+    <title></title>
+
+    <% if false -%>
+    <%= javascript_include_tag('prototype', 'utils', :cache => 'cache_all') %>
+    <%= javascript_include_tag('jquery-1.2.6.min') %>
+    <%= stylesheet_link_tag :base %>
+    <%= stylesheet_link_tag :pager %>
+    <% end -%>
+  </head>
+
+  <body>
+    <div id="container">
+      <div id="header"></div>
+
+      <%= yield :layout %>
+
+      <div id="footer">
+        created by <%= link_to('sasata299', 'http://blog.livedoor.jp/sasata299/', :popup => true) %>
+      </div>
+    </div>
+  </body>
+</html>
+

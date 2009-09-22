@@ -1,0 +1,5 @@
+log/*
+tmp/*
+config/*.yml
+config/*.csv
+config/*.dic

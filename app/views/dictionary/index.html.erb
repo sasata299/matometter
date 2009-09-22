@@ -1,0 +1,6 @@
+<% form_for(:dictionary, :url => { :action => "create" }) do |f| -%>
+  <label for="word">単語</label><%= f.text_field :word %>
+  <label for="word_type">種別</label><%= f.text_field :word_type %>
+  <%= submit_tag "登録する" %>
+<% end -%>
+
