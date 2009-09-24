@@ -12,8 +12,9 @@ class Remark < ActiveRecord::Base
     data = Scraper.define do
       process 'ol#timeline span.status-body > span.entry-content', 'remarks[]' => :text
       result :remarks
-    end.scrape( URI.parse("http://twitter.com/#{user_name}"), :parser_options => {:char_encoding => 'utf8'} )
+    end.scrape( URI.parse("http://twitter.com/#{user_name}"), :parser_options => {:char_encoding => 'utf8'} ) rescue nil
 
+    return nil if data.nil?
     return data.map {|d| 
       {
         :user_id => User.find_by_name(user_name).id,

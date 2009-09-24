@@ -8,6 +8,8 @@ ActiveRecord::Base.logger=Logger.new(STDOUT)
 users = User.find(:all, :conditions => 'delete_flag = 0').map { |user| {:user_id => user.id, :user_name => user.name} }
 users.each do |user|
   remarks = Remark.scrape_timeline(user[:user_name])
+  next if remarks.nil?
+
   remarks.each do |remark|
     if @remark = Remark.find_by_remark(remark[:remark])
       @remark.wakati = remark[:wakati]
