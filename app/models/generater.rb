@@ -7,11 +7,12 @@ class Generater < ActiveRecord::Base
       :order      => 'updated_at DESC',
       :limit      => 20
     ).map { |remark| remark.id }
+    return nil if ids.empty?
 
     @classifies = Classify.find(
       :all, 
       :include    => "remark",
-      :conditions => "remark_id IN (#{ids.join(',')})"
+      :conditions => "word <> '' and remark_id IN (#{ids.join(',')})"
     )
     @classifies_last = Classify.find(
       :all, 
@@ -28,7 +29,8 @@ class Generater < ActiveRecord::Base
     (num - 1).times do
       array << @classifies[ rand(@classifies.size) ].word
     end
-    array << @classifies_last[ rand(@classifies_last.size) ].word
+    last = @classifies_last.empty? ? '' : @classifies_last[ rand(@classifies_last.size) ].word
+    array << last
     return array.join('')
   end
 end

@@ -14,6 +14,8 @@ client = Twitter::Client.from_config( File.expand_path(File.dirname(__FILE__)) +
 users = User.find(:all, :conditions => 'delete_flag = 0').map { |user| {:user_id => user.id, :user_name => user.name} }
 users.each do |user|
   reply_body = Generater.generate_sentence(user[:user_id])
+  next if reply_body.nil?
+
   client.status(:post, "@#{user[:user_name]} #{reply_body}")
   Generater.create(
     :user_id => user[:user_id],
