@@ -15,7 +15,7 @@ def login
   #login_form = page.forms.first
   login_form = page.forms[1]
   login_form['session[username_or_email]'] = "matometter"
-  login_form['session[password]'] = "xxxxxxxx"
+  login_form['session[password]'] = "Matometter1234"
   home_page = agent.submit(login_form)
   agent
 end
@@ -40,6 +40,7 @@ def get_self_followers
 
     followers = follower_page/"div#follow"/"span.'label screenname'"/"a"
     followers.each do |follow|
+      next if follow.inner_text =~ /キャンセル/
       now_follow << follow.inner_text
     end
     if link_array = follower_page.links.select {|link| link.href =~ /page/}
@@ -69,12 +70,14 @@ deleted = users - followers # delete_flagを立てる
 
 stored.each do |store|
   User.create!(:name => store)
-  #client.status(:post, "@#{store} フォローありがとうございます。一日一回あなたの発言を適当にまとめるので楽しみにしていてくださいね♪")
+  client.friend(:add, store)
+  client.status(:post, "@#{store} フォローありがとうございます。一日一回あなたの発言を適当にまとめるのでお楽しみに!!")
 end
 
 deleted.each do |delete|
   delete_user = User.find_by_name(delete)
   delete_user.delete_flag = 1
   delete_user.save!
+  client.friend(:remove, delete)
 end
 
