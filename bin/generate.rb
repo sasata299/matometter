@@ -45,3 +45,10 @@ users.each do |user|
   end
 end
 
+if users.size == 100
+  File.open('/var/www/matometter/now_id', 'w') {|f|
+    f.puts user[:user_id]
+  }
+else
+  File.delete('/var/www/matometter/now_id')
+end
