@@ -25,6 +25,7 @@ end
 
 users = User.find(
   :all, 
+  :limit => 100,
   :conditions => [ 'id >= ? and delete_flag = 0', now_id ]
 ).map { |user| {:user_id => user.id, :user_name => user.name} }
 
