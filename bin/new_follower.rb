@@ -73,7 +73,7 @@ stored  = followers - users # 新規に追加する
 deleted = users - followers # delete_flagを立てる
 
 stored.each do |store|
-  client.status(:post, "@#{store} フォローありがとうございます。一日一回あなたの発言を適当にまとめるのでお楽しみに!!")
+  client.status(:post, "@#{store} フォローありがとうございます。一日一回くらいあなたの発言を適当にまとめるのでお楽しみに!!")
   client.friend(:add, store)
   User.create!(:name => store)
 end

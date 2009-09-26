@@ -17,7 +17,7 @@ class Generater < ActiveRecord::Base
     @classifies_last = Classify.find(
       :all, 
       :include    => "remark",
-      :conditions => %Q/word LIKE '%。' AND remark_id IN (#{ids.join(',')})/
+      :conditions => %Q/word <> '' and word LIKE '%。' AND remark_id IN (#{ids.join(',')})/
     )
     return random_repeat(3 + rand(4))
   end
@@ -26,11 +26,13 @@ class Generater < ActiveRecord::Base
   
   def self.random_repeat(num = 4)
     array = []
+
     (num - 1).times do
       array << @classifies[ rand(@classifies.size) ].word
     end
     last = @classifies_last.empty? ? '' : @classifies_last[ rand(@classifies_last.size) ].word
     array << last
+
     return array.join('')
   end
 end
