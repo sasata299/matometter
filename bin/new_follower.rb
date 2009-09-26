@@ -9,13 +9,17 @@ require 'twitter/console' # twitter.yml 使うため
 require 'mechanize' 
 
 def login
+  config = YAML.load_file('/var/www/matometter/config/twitter.yml')
+  login = config['twitter']['login']
+  password = config['twitter']['password']
+
   agent = WWW::Mechanize.new
   agent.user_agent_alias = 'Mac FireFox'
   page = agent.get('http://twitter.com/login')
   #login_form = page.forms.first
   login_form = page.forms[1]
-  login_form['session[username_or_email]'] = "matometter"
-  login_form['session[password]'] = "Matometter1234"
+  login_form['session[username_or_email]'] = login
+  login_form['session[password]'] = password
   home_page = agent.submit(login_form)
   agent
 end
