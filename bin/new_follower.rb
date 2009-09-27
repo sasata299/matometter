@@ -26,11 +26,11 @@ end
 
 def get_self_followers
   agent = login
-  user_followers_page = agent.get("http://twitter.com/followers")
-  followers_info = (user_followers_page/"span#follower_count").inner_text
-  followers_num = followers_info.to_i
-  #p followers_num
   
+  # フォロー数を取得してた部分。今は使ってない
+  #user_followers_page = agent.get("http://twitter.com/followers")
+  #followers_num = (user_followers_page/"span#follower_count").inner_text.to_i
+
   follower_page = nil
   page_id = nil
   now_follow = []
@@ -58,6 +58,35 @@ def get_self_followers
   return now_follow
 end
 
+def get_self_friends
+  agent = login
+  
+  follower_page = nil
+  page_id = nil
+  now_friend = []
+
+  loop do
+    if page_id
+      follower_page = agent.get("http://twitter.com/following?page=#{page_id}")
+    else
+      follower_page = agent.get("http://twitter.com/following")
+    end
+
+    followers = follower_page/"div#follow"/"span.'label screenname'"/"a"
+    followers.each do |follow|
+      now_friend << follow.inner_text
+    end
+    if link_array = follower_page.links.select {|link| link.href =~ /page/}
+      /\?page=(\d+)/ =~ link_array[0].href rescue break
+      page_id = $1.to_i
+    else
+      break
+    end
+  end
+  
+  return now_friend
+end
+
 client = Twitter::Client.from_config( File.expand_path(File.dirname(__FILE__)) + '/../config/twitter.yml', 'twitter' )
 
 followers = []
@@ -78,8 +107,10 @@ stored.each do |store|
   User.create!(:name => store)
 end
 
+friends = []
+friends = get_self_followers
 deleted.each do |delete|
-  client.friend(:remove, delete)
+  client.friend(:remove, delete) if friends.include?(delete)
   delete_user = User.find_by_name(delete)
   delete_user.delete_flag = 1
   delete_user.save!
