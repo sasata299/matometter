@@ -107,12 +107,14 @@ stored.each do |store|
   User.create!(:name => store)
 end
 
-friends = []
-friends = get_self_followers
-deleted.each do |delete|
-  client.friend(:remove, delete) if friends.include?(delete)
-  delete_user = User.find_by_name(delete)
-  delete_user.delete_flag = 1
-  delete_user.save!
-end
+unless deleted.empty?
+  friends = []
+  friends = get_self_followers
 
+  deleted.each do |delete|
+    client.friend(:remove, delete) if friends.include?(delete)
+    delete_user = User.find_by_name(delete)
+    delete_user.delete_flag = 1
+    delete_user.save!
+  end
+end
