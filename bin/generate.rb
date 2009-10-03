@@ -13,7 +13,7 @@ client = Twitter::Client.from_config( File.expand_path(File.dirname(__FILE__)) +
 
 users = {}
 now_id = 1
-if Time.now.hour != 15
+if Time.now.hour != 14
   if File.exist?('/var/www/matometter/now_id')
     File.open('/var/www/matometter/now_id') {|f|
       now_id = f.read.chomp.to_i
@@ -29,26 +29,47 @@ users = User.find(
   :conditions => [ 'id >= ? and delete_flag = 0', now_id ]
 ).map { |user| {:user_id => user.id, :user_name => user.name} }
 
+now_process = 0
 users.each do |user|
+  now_process = user[:user_id]
+
   reply_body = Generater.generate_sentence(user[:user_id])
   next if reply_body.nil?
+
   begin 
     client.status(:post, "@#{user[:user_name]} #{reply_body}")
     Generater.create(
       :user_id => user[:user_id],
       :body    => reply_body
     )
-  rescue Twitter::RESTError => e    
+  rescue Twitter::RESTError => e
+    p e.message
+    sleep 60
+    num = 0 if num.nil?
+    num += 1
+    
+    if num >= 3
+      File.open('/var/www/matometter/now_id', 'w') {|f|
+        f.puts user[:user_id]
+      }
+      exit
+    end
+    
+    retry
+  rescue => e    
+    p e.message
     File.open('/var/www/matometter/now_id', 'w') {|f|
       f.puts user[:user_id]
     }
+    exit
   end
 end
 
 if users.size == 100
   File.open('/var/www/matometter/now_id', 'w') {|f|
-    f.puts user[:user_id]
+    f.puts(now_process + 1)
   }
 else
   File.delete('/var/www/matometter/now_id')
 end
+

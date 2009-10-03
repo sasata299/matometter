@@ -11,15 +11,25 @@ class Generater < ActiveRecord::Base
 
     @classifies = Classify.find(
       :all, 
-      :include    => "remark",
-      :conditions => "word <> '' and remark_id IN (#{ids.join(',')})"
+      :conditions => "word <> '' and LENGTH(word) > 1 and remark_id IN (#{ids.join(',')})"
     )
+    if @classifies.empty?
+      File.open('/var/www/matometter/no_classifies', 'w') {|f|
+        f.puts user_id
+        f.puts ids.join(',')
+      }
+      File.open('/var/www/matometter/now_id', 'w') {|f|
+        f.puts user_id
+      }
+      exit
+    end
+
     @classifies_last = Classify.find(
       :all, 
-      :include    => "remark",
       :conditions => %Q/word <> '' and word LIKE '%。' AND remark_id IN (#{ids.join(',')})/
     )
-    return random_repeat(3 + rand(4))
+
+    return random_repeat(4 + rand(4))
   end
 
   private
