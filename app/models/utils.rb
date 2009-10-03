@@ -91,7 +91,7 @@ module Utils
           break
         end
       rescue WWW::Mechanize::ResponseCodeError => e
-        p 'Bad Gateway ?'
+        p e.message
         sleep 60
         retry
       end
