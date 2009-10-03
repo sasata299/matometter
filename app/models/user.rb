@@ -24,6 +24,8 @@ class User < ActiveRecord::Base
   end
 
   def self.remove_and_delete_flag(name)
+    friends = get_self_followers
+
     begin
       client.friend(:remove, name) if friends.include?(name)
     rescue Twitter::RESTError => e
@@ -36,6 +38,7 @@ class User < ActiveRecord::Base
 
       retry
     rescue => e
+      p e.message
       exit
     end
     delete_user = User.find(

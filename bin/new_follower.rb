@@ -32,8 +32,6 @@ stored.each do |store|
 end
 
 unless deleted.empty?
-  friends = get_self_followers
-
   deleted.each do |delete|
     User.remove_and_delete_flag(delete)
   end
