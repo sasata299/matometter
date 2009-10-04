@@ -28,11 +28,11 @@ stored  = followers - users # 新規に追加する
 deleted = users - followers # delete_flagを立てる
 
 stored.each do |store|
-  User.add_and_create(store)
+  User.add_and_create(client, store)
 end
 
 unless deleted.empty?
   deleted.each do |delete|
-    User.remove_and_delete_flag(delete)
+    User.remove_and_delete_flag(client, delete)
   end
 end

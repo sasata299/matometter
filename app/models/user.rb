@@ -1,7 +1,7 @@
 class User < ActiveRecord::Base
   has_many :remarks
 
-  def self.add_and_create(name)
+  def self.add_and_create(client, name)
     unless User.find_by_name(name)
       begin
         client.status(:post, "@#{name} フォローありがとうございます。一日一回くらいあなたの発言を適当にまとめるのでお楽しみに!!")
@@ -15,6 +15,7 @@ class User < ActiveRecord::Base
 
         retry
       rescue => e
+        p e.message
         exit
       end
     end
@@ -23,7 +24,7 @@ class User < ActiveRecord::Base
     User.create!(:name => name)
   end
 
-  def self.remove_and_delete_flag(name)
+  def self.remove_and_delete_flag(client, name)
     friends = get_self_followers
 
     begin
