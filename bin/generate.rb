@@ -40,7 +40,6 @@ users.each do |user|
   reply_body = Generater.generate_sentence(user[:user_id])
   next if reply_body.nil?
 
-p reply_body
   begin 
     client.status(:post, "@#{user[:user_name]} #{reply_body}")
     Generater.create(
