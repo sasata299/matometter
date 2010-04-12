@@ -11,17 +11,17 @@ class Generater < ActiveRecord::Base
 
     @classifies = Classify.find(
       :all, 
-      :conditions => "word <> '' and LENGTH(word) > 1 and remark_id IN (#{ids.join(',')})"
+      :conditions => "remark_id IN (#{ids.join(',')}) and word <> '' and LENGTH(word) > 1"
     )
     if @classifies.empty?
-      File.open('/var/www/matometter/no_classifies', 'w') {|f|
+      File.open('/var/www/matometter/no_classifies', 'a') {|f|
+        f.puts '-------------------------'
+        f.puts Time.now
         f.puts user_id
         f.puts ids.join(',')
       }
-      File.open('/var/www/matometter/now_id', 'w') {|f|
-        f.puts user_id
-      }
-      exit
+
+      return
     end
 
     @classifies_last = Classify.find(

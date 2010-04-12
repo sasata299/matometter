@@ -1,5 +1,11 @@
 #!/usr/bin/ruby
 
+SIZE = 60
+
+# process が複数起動することがあったので、安全の為
+process = `/bin/ps aux | /bin/grep generate.rb | /bin/grep -v grep`.split(/\n/)
+exit if process.size >= 2
+
 $:.push(File.expand_path(File.dirname(__FILE__)))
 require 'base'
 
@@ -13,20 +19,18 @@ client = Twitter::Client.from_config( File.expand_path(File.dirname(__FILE__)) +
 
 users = {}
 now_id = 1
-if Time.now.hour != 14
-  if File.exist?('/var/www/matometter/now_id')
-    File.open('/var/www/matometter/now_id') {|f|
-      now_id = f.read.chomp.to_i
-    }
-  else
-    exit
-  end
+if File.exist?('/var/www/matometter/now_id')
+  File.open('/var/www/matometter/now_id') {|f|
+    now_id = f.read.chomp.to_i
+  }
+else
+  exit unless Time.now.hour.to_s =~ /^(14|15|16|17)$/
 end
 
 users = User.find(
   :all, 
-  :limit => 100,
-  :conditions => [ 'id >= ? and delete_flag = 0', now_id ]
+  :conditions => [ 'id >= ? and delete_flag = 0', now_id ],
+  :limit      => SIZE
 ).map { |user| {:user_id => user.id, :user_name => user.name} }
 
 now_process = 0
@@ -36,6 +40,7 @@ users.each do |user|
   reply_body = Generater.generate_sentence(user[:user_id])
   next if reply_body.nil?
 
+p reply_body
   begin 
     client.status(:post, "@#{user[:user_name]} #{reply_body}")
     Generater.create(
@@ -48,24 +53,23 @@ users.each do |user|
     num = 0 if num.nil?
     num += 1
     
-    if num >= 3
-      File.open('/var/www/matometter/now_id', 'w') {|f|
-        f.puts user[:user_id]
-      }
-      exit
-    end
+    File.open('/var/www/matometter/now_id', 'w') {|f|
+      f.puts now_process
+    }
+
+    exit if num >= 2
     
     retry
   rescue => e    
     p e.message
     File.open('/var/www/matometter/now_id', 'w') {|f|
-      f.puts user[:user_id]
+      f.puts now_process
     }
     exit
   end
 end
 
-if users.size == 100
+if users.size == SIZE
   File.open('/var/www/matometter/now_id', 'w') {|f|
     f.puts(now_process + 1)
   }

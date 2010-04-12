@@ -2,16 +2,15 @@ module Utils
   def self.remove_noise(remark)
     #remark.gsub!(/RT.+$/,'') if remark =~ /RT.+$/
     remark.gsub!(/RT /,'') if remark =~ /RT /
-    remark.gsub!(/http:[^\s]+$/,'') if remark =~ /http:[^\s]+$/
-    remark.gsub!(/@[^\s]+:? /,'') if remark =~ /@[^\s]+:? /
-    remark.gsub!(/@[^\s]+:?$/,'') if remark =~ /@[^\s]+:?$/
+    remark.gsub!(/http:\/\/.+$/,'') if remark =~ /http:\/\//
+    remark.gsub!(/#[^\s]+\s?/,'') if remark =~ /#[^\s]+\s?/
+    remark.gsub!(/@[^\s]+:?\s?/,'') if remark =~ /@[^\s]+:?\s?/
 
     return remark
   end
 
-  def mechanize_login
-    config = YAML.load_file('/var/www/matometter/config/twitter.yml'
-  )
+  def self.mechanize_login
+    config = YAML.load_file('/var/www/matometter/config/twitter.yml')
     login = config['twitter']['login']
     password = config['twitter']['password']
   
@@ -27,7 +26,7 @@ module Utils
   end
 
   def get_self_followers
-    agent = mechanize_login
+    agent = Utils.mechanize_login
     
     user_followers_page = agent.get("http://twitter.com/followers")
     @followers_num = (user_followers_page/"span#follower_count").inner_text.to_i
@@ -35,7 +34,8 @@ module Utils
     follower_page = nil
     page_id = nil
     now_follow = []
-  
+    error_num = 0
+
     loop do
       begin
         if page_id
@@ -47,16 +47,20 @@ module Utils
         followers = follower_page/"div#follow"/"span.'label screenname'"/"a"
         followers.each do |follow|
           next if follow.inner_text =~ /キャンセル/
-          now_follow << follow.inner_text
+          user_name = (follow.to_s =~ /protect/) ? "@@#{follow.inner_text}@@" : follow.inner_text
+          now_follow << user_name
         end
-        if link_array = follower_page.links.select {|link| link.href =~ /page/}
-          /\?page=(\d+)/ =~ link_array[0].href rescue break
-          page_id = $1.to_i
-        else
-          break
+        if next_link = follower_page.links.select {|link| link.href =~ /\?page=\d/}
+          if next_link[0].nil?
+            break
+          elsif next_link[0].href =~ /\?page=(\d+)/
+            page_id = $1.to_i
+          end
         end
       rescue WWW::Mechanize::ResponseCodeError => e
-        p 'Bad Gateway ?'
+        p e.message
+        error_num += 1
+        return [] if error_num > 2
         sleep 60
         retry
       end
@@ -66,11 +70,12 @@ module Utils
   end
   
   def get_self_friends
-    agent = login
+    agent = Utils.mechanize_login
     
     follower_page = nil
     page_id = nil
     now_friend = []
+    error_num = 0
   
     loop do
       begin
@@ -84,14 +89,17 @@ module Utils
         followers.each do |follow|
           now_friend << follow.inner_text
         end
-        if link_array = follower_page.links.select {|link| link.href =~ /page/}
-          /\?page=(\d+)/ =~ link_array[0].href rescue break
-          page_id = $1.to_i
-        else
-          break
+        if next_link = follower_page.links.select {|link| link.href =~ /\?page=\d/}
+          if next_link[0].nil?
+            break
+          elsif next_link[0].href =~ /\?page=(\d+)/
+            page_id = $1.to_i
+          end
         end
       rescue WWW::Mechanize::ResponseCodeError => e
         p e.message
+        error_num += 1
+        return [] if error_num > 2
         sleep 60
         retry
       end
