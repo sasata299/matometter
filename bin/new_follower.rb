@@ -9,17 +9,14 @@ require 'base'
 require 'mechanize' 
 include Utils
 
-access_token = MyOAuth.new
+access_token = MyOAuth.get_access_token
 
 followers = get_self_followers
 followers_replace = followers.map {|f| f.gsub(/@@/, '') if f =~ /@@/}.compact!
 exit if followers.empty?
 exit if followers.size < (@followers_num.to_i - 5)
 
-users = User.find(
-  :all, 
-  :conditions => 'delete_flag = 0'
-).map { |user| user.name }
+users = User.all(:conditions => 'delete_flag = 0').map(&:name)
 
 stored = followers.select {|follow| !users.include?( follow.gsub(/@@/, '') )}
 deleted = users.select {|user| !(followers.include?(user) || followers.include?("@@#{user}@@"))}

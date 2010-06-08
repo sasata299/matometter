@@ -9,7 +9,7 @@ exit if process.size >= 2
 $:.push(File.expand_path(File.dirname(__FILE__)))
 require 'base'
 
-access_token = MyOAuth.new
+access_token = MyOAuth.get_access_token
 
 users = {}
 now_id = 1
@@ -21,8 +21,7 @@ else
   exit unless Time.now.hour.to_s =~ /^(14|15|16|17)$/
 end
 
-users = User.find(
-  :all, 
+users = User.all(
   :conditions => [ 'id >= ? and delete_flag = 0', now_id ],
   :limit      => SIZE
 ).map { |user| {:user_id => user.id, :user_name => user.name} }
@@ -37,26 +36,26 @@ users.each do |user|
 
   begin 
     access_token.post(
-      'http://twitter.com/statuses/update.json',
+      '/statuses/update.json',
       'status' => "@#{user[:user_name]} #{reply_body}"
     )
     Generater.create(
       :user_id => user[:user_id],
       :body    => reply_body
     )
-  rescue Twitter::RESTError => e
-    p e.message
-    sleep 60
-    num = 0 if num.nil?
-    num += 1
-    
-    File.open('/var/www/matometter/now_id', 'w') {|f|
-      f.puts now_process
-    }
-
-    exit if num >= 2
-    
-    retry
+#  rescue Twitter::RESTError => e
+#    p e.message
+#    sleep 60
+#    num = 0 if num.nil?
+#    num += 1
+#    
+#    File.open('/var/www/matometter/now_id', 'w') {|f|
+#      f.puts now_process
+#    }
+#
+#    exit if num >= 2
+#    
+#    retry
   rescue => e    
     p e.message
     File.open('/var/www/matometter/now_id', 'w') {|f|

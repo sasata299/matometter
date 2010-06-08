@@ -12,7 +12,7 @@ config = YAML.load_file(File.expand_path(File.dirname(__FILE__)) + '/../config/d
 ActiveRecord::Base.establish_connection( config[env] )
 
 class MyOAuth
-  def initialize
+  def self.get_access_token
     _oauth = YAML.load_file( File.expand_path(File.dirname(__FILE__)) + '/../config/oauth.yml' )
     
     consumer = OAuth::Consumer.new(

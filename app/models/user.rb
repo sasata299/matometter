@@ -4,7 +4,7 @@ class User < ActiveRecord::Base
   def self._add(access_token, name)
     # 参考: http://apiwiki.twitter.com/Twitter-API-Documentation
     access_token.post(
-      'http://twitter.com/fendships/create.json',
+      '/fendships/create.json',
       'screen_name' => name
     )
   end
@@ -22,7 +22,7 @@ class User < ActiveRecord::Base
       else
         User.create!(:name => name)
         access_token.post(
-          'http://twitter.com/statuses/update.json',
+          '/statuses/update.json',
           'status' => "@#{name} フォローありがとうございます。一日一回くらいあなたの発言を適当にまとめるのでお楽しみに!!"
         )
       end
@@ -44,7 +44,7 @@ class User < ActiveRecord::Base
   def self.remove_and_delete_flag(access_token, name, friends)
     begin
       access_token.post(
-        'http://twitter.com/friendships/destroy.json',
+        '/friendships/destroy.json',
         'screen_name' => name
       )
     rescue Twitter::RESTError => e

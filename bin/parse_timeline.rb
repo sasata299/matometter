@@ -9,8 +9,6 @@ exit if process.size >= 2
 $:.push(File.expand_path(File.dirname(__FILE__)))
 require 'base'
 
-#ActiveRecord::Base.logger=Logger.new(STDOUT)
-
 parse_id = 1
 if File.exist?('/var/www/matometter/now_parse_id')
   File.open('/var/www/matometter/now_parse_id') {|f|
@@ -18,8 +16,7 @@ if File.exist?('/var/www/matometter/now_parse_id')
   }
 end
 
-users = User.find(
-  :all, 
+users = User.all(
   :conditions => [ 'delete_flag = 0 AND id >= ?', parse_id ],
   :limit      => SIZE
 ).map { |user| {:user_id => user.id, :user_name => user.name} }
