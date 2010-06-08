@@ -14,7 +14,7 @@ module Utils
     login = config['twitter']['login']
     password = config['twitter']['password']
   
-    agent = WWW::Mechanize.new
+    agent = Mechanize.new
     agent.user_agent_alias = 'Mac FireFox'
     page = agent.get('http://twitter.com/login')
     #login_form = page.forms.first
@@ -29,7 +29,7 @@ module Utils
     agent = Utils.mechanize_login
     
     user_followers_page = agent.get("http://twitter.com/followers")
-    @followers_num = (user_followers_page/"span#follower_count").inner_text.to_i
+    @followers_num = (user_followers_page/"span#follower_count").inner_text.gsub(/,/, '').to_i
   
     follower_page = nil
     page_id = nil
@@ -44,10 +44,18 @@ module Utils
           follower_page = agent.get("http://twitter.com/followers")
         end
   
-        followers = follower_page/"div#follow"/"span.'label screenname'"/"a"
-        followers.each do |follow|
-          next if follow.inner_text =~ /キャンセル/
-          user_name = (follow.to_s =~ /protect/) ? "@@#{follow.inner_text}@@" : follow.inner_text
+        followers = follower_page/"div#follow"/"span[@class='label screenname']"/"a"
+        plus_info = follower_page/"div#follow"/"span.is-relationship"
+        followers.each_with_index do |follow,i|
+          if follow.to_s =~ /のツイートは非公開にしています/
+            if plus_info[i].to_s =~ /(?:キャンセル|フォロー中)/
+              user_name = follow.inner_text
+            else
+              user_name = "@@#{follow.inner_text}@@"
+            end
+          else
+            user_name = follow.inner_text
+          end
           now_follow << user_name
         end
         if next_link = follower_page.links.select {|link| link.href =~ /\?page=\d/}
@@ -57,7 +65,7 @@ module Utils
             page_id = $1.to_i
           end
         end
-      rescue WWW::Mechanize::ResponseCodeError => e
+      rescue Mechanize::ResponseCodeError => e
         p e.message
         error_num += 1
         return [] if error_num > 2
@@ -85,7 +93,7 @@ module Utils
           follower_page = agent.get("http://twitter.com/following")
         end
   
-        followers = follower_page/"div#follow"/"span.'label screenname'"/"a"
+        followers = follower_page/"div#follow"/"span[@class='label screenname']"/"a"
         followers.each do |follow|
           now_friend << follow.inner_text
         end
@@ -96,7 +104,7 @@ module Utils
             page_id = $1.to_i
           end
         end
-      rescue WWW::Mechanize::ResponseCodeError => e
+      rescue Mechanize::ResponseCodeError => e
         p e.message
         error_num += 1
         return [] if error_num > 2

@@ -1,11 +1,18 @@
 class User < ActiveRecord::Base
   has_many :remarks
 
-  def self.add_and_create(client, name)
+  def self._add(access_token, name)
+    #client.friend(:add, name)
+    access_token.post(
+      'http://twitter.com//fendships/create.json',
+      'screen_name' => name
+    )
+  end
+
+  def self._create(access_token, name)
     begin
       if name =~ /@@(.+)@@/
         name.gsub!(/@@(.+)@@/) {$1}
-#        client.friend(:add, name)
       end
 
       user = User.find_by_name(name)
@@ -14,7 +21,11 @@ class User < ActiveRecord::Base
         user.save!
       else
         User.create!(:name => name)
-        client.status(:post, "@#{name} フォローありがとうございます。一日一回くらいあなたの発言を適当にまとめるのでお楽しみに!!")
+        #client.status(:post, "@#{name} フォローありがとうございます。一日一回くらいあなたの発言を適当にまとめるのでお楽しみに!!")
+        access_token.post(
+          'http://twitter.com/statuses/update.json',
+          'status' => "@#{name} フォローありがとうございます。一日一回くらいあなたの発言を適当にまとめるのでお楽しみに!!"
+        )
       end
     rescue Twitter::RESTError => e
       p e.message
@@ -31,9 +42,13 @@ class User < ActiveRecord::Base
     end
   end
 
-  def self.remove_and_delete_flag(client, name, friends)
+  def self.remove_and_delete_flag(access_token, name, friends)
     begin
-      client.friend(:remove, name) if friends.include?(name)
+      #client.friend(:remove, name) if friends.include?(name)
+      access_token.post(
+        'http://twitter.com/friendships/destroy.json',
+        'screen_name' => name
+      )
     rescue Twitter::RESTError => e
       p e.message
       sleep 60

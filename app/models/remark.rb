@@ -35,7 +35,7 @@ class Remark < ActiveRecord::Base
   def self.scrape_by_mechanize(user_name)
     begin
       agent = Utils.mechanize_login
-    rescue WWW::Mechanize::ResponseCodeError => e
+    rescue Mechanize::ResponseCodeError => e
       p e.response_code
       sleep 60
       retry
@@ -45,7 +45,7 @@ class Remark < ActiveRecord::Base
       
     begin
       page = agent.get("http://twitter.com/#{user_name}")
-    rescue WWW::Mechanize::ResponseCodeError => e
+    rescue Mechanize::ResponseCodeError => e
       case e.response_code
       when '404'
         p e.response_code
