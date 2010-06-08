@@ -2,9 +2,9 @@ class User < ActiveRecord::Base
   has_many :remarks
 
   def self._add(access_token, name)
-    #client.friend(:add, name)
+    # 参考: http://apiwiki.twitter.com/Twitter-API-Documentation
     access_token.post(
-      'http://twitter.com//fendships/create.json',
+      'http://twitter.com/fendships/create.json',
       'screen_name' => name
     )
   end
@@ -21,7 +21,6 @@ class User < ActiveRecord::Base
         user.save!
       else
         User.create!(:name => name)
-        #client.status(:post, "@#{name} フォローありがとうございます。一日一回くらいあなたの発言を適当にまとめるのでお楽しみに!!")
         access_token.post(
           'http://twitter.com/statuses/update.json',
           'status' => "@#{name} フォローありがとうございます。一日一回くらいあなたの発言を適当にまとめるのでお楽しみに!!"
@@ -44,7 +43,6 @@ class User < ActiveRecord::Base
 
   def self.remove_and_delete_flag(access_token, name, friends)
     begin
-      #client.friend(:remove, name) if friends.include?(name)
       access_token.post(
         'http://twitter.com/friendships/destroy.json',
         'screen_name' => name

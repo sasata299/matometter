@@ -1,34 +1,15 @@
 #!/usr/bin/ruby
 
-CONSUMER_KEY        = 'SECRET'
-CONSUMER_SECRET     = 'SECRET'
-ACCESS_TOKEN        = 'SECRET'
-ACCESS_TOKEN_SECRET = 'SECRET'
-
 # process が複数起動することがあったので、安全の為
-process = `/bin/ps aux | /bin/grep new_follower.rb | /bin/grep -v grep`.split(/\n/)
+process = `ps aux | grep new_follower.rb | grep -v grep`.split(/\n/)
 exit if process.size >= 2
 
 $:.push(File.expand_path(File.dirname(__FILE__)))
 require 'base'
-require 'oauth'
-#gem 'twitter4r'
-#require 'twitter'
-#require 'twitter/console' # twitter.yml 使うため
 require 'mechanize' 
 include Utils
 
-#client = Twitter::Client.from_config( File.expand_path(File.dirname(__FILE__)) + '/../config/twitter.yml', 'twitter' )
-consumer = OAuth::Consumer.new(
-  CONSUMER_KEY,
-  CONSUMER_SECRET,
-  :site => 'http://twitter.com'
-)
-access_token = OAuth::AccessToken.new(
-  consumer,
-  ACCESS_TOKEN,
-  ACCESS_TOKEN_SECRET
-)
+access_token = MyOAuth.new
 
 followers = get_self_followers
 followers_replace = followers.map {|f| f.gsub(/@@/, '') if f =~ /@@/}.compact!

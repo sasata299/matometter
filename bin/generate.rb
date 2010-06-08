@@ -1,36 +1,15 @@
 #!/usr/bin/ruby
 
-CONSUMER_KEY        = 'SECRET'
-CONSUMER_SECRET     = 'SECRET'
-ACCESS_TOKEN        = 'SECRET'
-ACCESS_TOKEN_SECRET = 'SECRET'
-
-SIZE = 60
+SIZE = 50
 
 # process が複数起動することがあったので、安全の為
-process = `/bin/ps aux | /bin/grep generate.rb | /bin/grep -v grep`.split(/\n/)
+process = `ps aux | grep generate.rb | grep -v grep`.split(/\n/)
 exit if process.size >= 2
 
 $:.push(File.expand_path(File.dirname(__FILE__)))
 require 'base'
-require 'oauth'
-#gem 'twitter4r'
-#require 'twitter'
-#require 'twitter/console' # twitter.yml 使うため
 
-#ActiveRecord::Base.logger=Logger.new(STDOUT)
-
-#client = Twitter::Client.from_config( File.expand_path(File.dirname(__FILE__)) + '/../config/twitter.yml', 'twitter' )
-consumer = OAuth::Consumer.new(
-  CONSUMER_KEY,
-  CONSUMER_SECRET,
-  :site => 'http://twitter.com'
-)
-access_token = OAuth::AccessToken.new(
-  consumer,
-  ACCESS_TOKEN,
-  ACCESS_TOKEN_SECRET
-)
+access_token = MyOAuth.new
 
 users = {}
 now_id = 1
@@ -57,7 +36,6 @@ users.each do |user|
   reply_body.gsub!(/"/, '') # "があるとPOST時に変なところで閉じられちゃうため
 
   begin 
-    #client.status(:post, "@#{user[:user_name]} #{reply_body}")
     access_token.post(
       'http://twitter.com/statuses/update.json',
       'status' => "@#{user[:user_name]} #{reply_body}"
