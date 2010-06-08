@@ -1,5 +1,10 @@
 #!/usr/bin/ruby
 
+CONSUMER_KEY        = 'SECRET'
+CONSUMER_SECRET     = 'SECRET'
+ACCESS_TOKEN        = 'SECRET'
+ACCESS_TOKEN_SECRET = 'SECRET'
+
 SIZE = 60
 
 # process が複数起動することがあったので、安全の為
@@ -8,14 +13,24 @@ exit if process.size >= 2
 
 $:.push(File.expand_path(File.dirname(__FILE__)))
 require 'base'
-
-gem 'twitter4r'
-require 'twitter'
-require 'twitter/console' # twitter.yml 使うため
+require 'oauth'
+#gem 'twitter4r'
+#require 'twitter'
+#require 'twitter/console' # twitter.yml 使うため
 
 #ActiveRecord::Base.logger=Logger.new(STDOUT)
 
-client = Twitter::Client.from_config( File.expand_path(File.dirname(__FILE__)) + '/../config/twitter.yml', 'twitter' )
+#client = Twitter::Client.from_config( File.expand_path(File.dirname(__FILE__)) + '/../config/twitter.yml', 'twitter' )
+consumer = OAuth::Consumer.new(
+  CONSUMER_KEY,
+  CONSUMER_SECRET,
+  :site => 'http://twitter.com'
+)
+access_token = OAuth::AccessToken.new(
+  consumer,
+  ACCESS_TOKEN,
+  ACCESS_TOKEN_SECRET
+)
 
 users = {}
 now_id = 1
@@ -39,9 +54,14 @@ users.each do |user|
 
   reply_body = Generater.generate_sentence(user[:user_id])
   next if reply_body.nil?
+  reply_body.gsub!(/"/, '') # "があるとPOST時に変なところで閉じられちゃうため
 
   begin 
-    client.status(:post, "@#{user[:user_name]} #{reply_body}")
+    #client.status(:post, "@#{user[:user_name]} #{reply_body}")
+    access_token.post(
+      'http://twitter.com/statuses/update.json',
+      'status' => "@#{user[:user_name]} #{reply_body}"
+    )
     Generater.create(
       :user_id => user[:user_id],
       :body    => reply_body
