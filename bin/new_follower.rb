@@ -52,9 +52,17 @@ unless deleted.empty?
 end
 
 stored.each do |store|
+<<<<<<< HEAD
   User._create(access_token, store)
 end
 
 followers_replace.each do |added_user|
   User._add(access_token, added_user)
+=======
+  User._create(client, store)
+end
+
+followers_replace.each do |added_user|
+  User._add(client, added_user)
+>>>>>>> 1add73a2ca6eac26257099435361a0c860868354
 end
